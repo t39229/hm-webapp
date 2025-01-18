@@ -1,11 +1,15 @@
 pipeline {
     agent any
+
+    triggers {
+        githubPush()
+    }
     
     environment {
         DOCKER_REGISTRY = 'docker.io'
         IMAGE_NAME = 'nginx-app'
         IMAGE_TAG = "${BUILD_NUMBER}"
-        DOCKER_CREDENTIALS = credentials('21285o6') // Your Docker Hub credentials ID
+        DOCKER_CREDENTIALS = credentials('21285o6')
     }
     
     stages {
