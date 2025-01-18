@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: your-docker-registry/nginx-app:latest
+        image: docker.io/nginx-app:latest
         ports:
         - containerPort: 80
