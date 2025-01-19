@@ -23,7 +23,7 @@ pipeline {
             steps {
                 script {
                     checkout([$class: 'GitSCM',
-                        branches: [[name: '*/main']],
+                        branches: [[name: '*/master']],
                         userRemoteConfigs: [[
                             url: env.REPOSITORY_URL,
                             credentialsId: 'github-token'
@@ -65,7 +65,7 @@ pipeline {
                             sed -i 's|image: .*|image: ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}|' k8s/deployment.yaml
                             git add k8s/deployment.yaml
                             git commit -m "Update image tag to ${IMAGE_TAG}"
-                            git push https://\${GITHUB_TOKEN}@github.com/t39229/k8s-demo-app.git main
+                            git push https://\${GITHUB_TOKEN}@github.com/t39229/k8s-demo-app.git master
                         """
                     }
                 }
