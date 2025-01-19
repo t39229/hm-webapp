@@ -73,15 +73,16 @@ pipeline {
     }
     
     post {
-    always {
-        node('built-in') {  // Using 'built-in' as the label for the Jenkins built-in node
-            cleanWs()
+        always {
+            node('built-in') {
+                cleanWs()
+            }
         }
-    }
-    failure {
-        echo 'Pipeline failed'
-    }
-    success {
-        echo 'Pipeline succeeded'
+        failure {
+            echo 'Pipeline failed'
+        }
+        success {
+            echo 'Pipeline succeeded'
+        }
     }
 }
