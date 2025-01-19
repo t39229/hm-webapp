@@ -19,20 +19,20 @@ pipeline {
         GITHUB_TOKEN = credentials('github-token')
         REPOSITORY_URL = 'https://github.com/t39229/k8s-demo-app.git'
     }
-
-    stage('Test GitHub Connection') {
-    steps {
-        sh 'git ls-remote -h ${REPOSITORY_URL}'
-    }
-}
-
     
     stages {
+        stage('Test GitHub Connection') {
+            steps {
+                sh 'git ls-remote -h ${REPOSITORY_URL}'
+            }
+        }
+
         stage('Checkout') {
             steps {
+                cleanWs()
                 script {
                     checkout([$class: 'GitSCM',
-                        branches: [[name: 'refs/heads/main']], // Explicitly specify main branch
+                        branches: [[name: 'refs/heads/main']],
                         extensions: [[$class: 'CleanBeforeCheckout']],
                         userRemoteConfigs: [[
                             url: env.REPOSITORY_URL,
@@ -42,7 +42,7 @@ pipeline {
                 }
             }
         }
-
+        
         stage('Build Docker Image') {
             steps {
                 script {
