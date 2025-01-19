@@ -19,6 +19,13 @@ pipeline {
         GITHUB_TOKEN = credentials('github-token')
         REPOSITORY_URL = 'https://github.com/t39229/k8s-demo-app.git'
     }
+
+    stage('Test GitHub Connection') {
+    steps {
+        sh 'git ls-remote -h ${REPOSITORY_URL}'
+    }
+}
+
     
     stages {
         stage('Checkout') {
@@ -35,7 +42,7 @@ pipeline {
                 }
             }
         }
-                
+
         stage('Build Docker Image') {
             steps {
                 script {
