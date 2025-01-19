@@ -74,13 +74,15 @@ pipeline {
     
     post {
         always {
-            cleanWs() // Removed node() block
+            node {
+                cleanWs() // Wrap cleanWs() in a node block
+            }
         }
         failure {
-            echo 'Pipeline failed' // Removed node() block
+            echo 'Pipeline failed'
         }
         success {
-            echo 'Pipeline succeeded' // Removed node() block
+            echo 'Pipeline succeeded'
         }
     }
 }
