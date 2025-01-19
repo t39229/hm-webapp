@@ -47,19 +47,12 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build and Push') {
             steps {
-                script {
-                    def dockerImage = docker.build("${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}")
-                }
-            }
-        }
-        
-        stage('Push Docker Image') {
-            steps {
-                script {
+                withCredentials([usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
                     sh """
-                        docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
+                        docker build -t \${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG} .
+                        docker push \${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
                     """
                 }
             }
@@ -67,11 +60,14 @@ pipeline {
         
         stage('Update Kubernetes Manifests') {
             steps {
-                withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
+                withCredentials([
+                    string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN'),
+                    usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')
+                ]) {
                     sh """
                         git config --global user.email "t39163463@gmail.com"
                         git config --global user.name "t39229"
-                        sed -i 's|image: .*|image: ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}|' k8s/deployment.yaml
+                        sed -i 's|image: .*|image: '\${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}'|' k8s/deployment.yaml
                         git add k8s/deployment.yaml
                         git commit -m "Update image tag to ${IMAGE_TAG}"
                         git push https://\${GITHUB_TOKEN}@github.com/t39229/k8s-demo-app.git main
