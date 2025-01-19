@@ -1,9 +1,11 @@
+properties([
+    pipelineTriggers([
+        githubPush()
+    ])
+])
+
 pipeline {
     agent any
-    
-    triggers {
-        githubPush()
-    }
     
     options {
         skipDefaultCheckout(false)
@@ -23,7 +25,8 @@ pipeline {
             steps {
                 script {
                     checkout([$class: 'GitSCM',
-                        branches: [[name: '*/main']],
+                        branches: [[name: 'refs/heads/main']], // Explicitly specify main branch
+                        extensions: [[$class: 'CleanBeforeCheckout']],
                         userRemoteConfigs: [[
                             url: env.REPOSITORY_URL,
                             credentialsId: 'github-token'
@@ -32,7 +35,7 @@ pipeline {
                 }
             }
         }
-        
+                
         stage('Build Docker Image') {
             steps {
                 script {
