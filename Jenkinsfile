@@ -74,19 +74,13 @@ pipeline {
     
     post {
         always {
-            node() {
-                cleanWs()
-            }
+            cleanWs() // Removed node() block
         }
         failure {
-            node(null) {
-                echo 'Pipeline failed'
-            }
+            echo 'Pipeline failed' // Removed node() block
         }
         success {
-            node(null) {
-                echo 'Pipeline succeeded'
-            }
+            echo 'Pipeline succeeded' // Removed node() block
         }
     }
 }
