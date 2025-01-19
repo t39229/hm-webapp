@@ -23,41 +23,32 @@ pipeline {
     stages {
         stage('Test GitHub Connection') {
             steps {
-                sh 'git ls-remote -h ${REPOSITORY_URL}'
+                withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
+                    sh 'git ls-remote -h ${REPOSITORY_URL}'
+                }
             }
         }
 
         stage('Checkout') {
             steps {
                 cleanWs()
-                script {
-                    checkout([$class: 'GitSCM',
-                        branches: [[name: 'refs/heads/main']],
-                        extensions: [[$class: 'CleanBeforeCheckout']],
-                        userRemoteConfigs: [[
-                            url: env.REPOSITORY_URL,
-                            credentialsId: 'github-token'
-                        ]]
-                    ])
-                }
+                git branch: 'main',
+                    credentialsId: 'github-token',
+                    url: env.REPOSITORY_URL
             }
         }
         
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh """
-                        docker build -t ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} .
-                    """
-                }
+                sh "docker build -t ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} ."
             }
         }
         
         stage('Push Docker Image') {
             steps {
-                script {
+                withCredentials([usernamePassword(credentialsId: '21285o6', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh """
-                        echo ${DOCKER_CREDENTIALS_PSW} | docker login ${DOCKER_REGISTRY} -u ${DOCKER_CREDENTIALS_USR} --password-stdin
+                        echo \$DOCKER_PASS | docker login ${DOCKER_REGISTRY} -u \$DOCKER_USER --password-stdin
                         docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
                         docker logout
                     """
@@ -67,17 +58,15 @@ pipeline {
         
         stage('Update Kubernetes Manifests') {
             steps {
-                script {
-                    withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
-                        sh """
-                            git config --global user.email "t39163463@gmail.com"
-                            git config --global user.name "t39229"
-                            sed -i 's|image: .*|image: ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}|' k8s/deployment.yaml
-                            git add k8s/deployment.yaml
-                            git commit -m "Update image tag to ${IMAGE_TAG}"
-                            git push https://\${GITHUB_TOKEN}@github.com/t39229/k8s-demo-app.git main
-                        """
-                    }
+                withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
+                    sh """
+                        git config --global user.email "t39163463@gmail.com"
+                        git config --global user.name "t39229"
+                        sed -i 's|image: .*|image: ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}|' k8s/deployment.yaml
+                        git add k8s/deployment.yaml
+                        git commit -m "Update image tag to ${IMAGE_TAG}"
+                        git push https://\${GITHUB_TOKEN}@github.com/t39229/k8s-demo-app.git main
+                    """
                 }
             }
         }
@@ -85,7 +74,9 @@ pipeline {
     
     post {
         always {
-            cleanWs()
+            script {
+                cleanWs notFailBuild: true
+            }
         }
         failure {
             echo 'Pipeline failed'
