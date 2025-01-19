@@ -24,17 +24,18 @@ pipeline {
         stage('Test GitHub Connection') {
             steps {
                 withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
-                    sh 'git ls-remote -h ${REPOSITORY_URL}'
+                    sh '''
+                       git ls-remote -h https://${GITHUB_TOKEN}@github.com/t39229/k8s-demo-app.git
+                    '''
                 }
             }
         }
 
         stage('Checkout') {
             steps {
-                cleanWs()
-                git branch: 'main',
-                    credentialsId: 'github-token',
-                    url: env.REPOSITORY_URL
+               cleanWs()
+               git branch: 'main',
+                  url: "https://${GITHUB_TOKEN}@github.com/t39229/k8s-demo-app.git"
             }
         }
         
