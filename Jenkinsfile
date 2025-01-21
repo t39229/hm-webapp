@@ -3,7 +3,7 @@ properties([
         [
             $class: 'GitHubPushTrigger',
             triggerOnPush: true,
-            triggerOnMerge: false
+            triggerOnMerge: true
         ]
     ])
 ])
