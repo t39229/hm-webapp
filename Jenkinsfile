@@ -10,7 +10,7 @@ pipeline {
     options {
         skipDefaultCheckout(false)
         disableConcurrentBuilds() // Prevents parallel builds
-        quietPeriod(60) // Adds a 60-second delay before starting a new build
+        quietPeriod(600) // Adds a 60-second delay before starting a new build
     }
     
     environment {
