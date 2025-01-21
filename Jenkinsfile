@@ -1,6 +1,10 @@
 properties([
     pipelineTriggers([
-        githubPush()
+        [
+            $class: 'GitHubPushTrigger',
+            triggerOnPush: true,
+            triggerOnMerge: false
+        ]
     ])
 ])
 
@@ -61,18 +65,23 @@ pipeline {
         
         stage('Update Kubernetes Manifests') {
             steps {
-                withCredentials([
-                    string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN'),
-                    usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')
-                ]) {
-                    sh """
-                        git config --global user.email "t39163463@gmail.com"
-                        git config --global user.name "t39229"
-                        sed -i 's|image: .*|image: '\${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}'|' k8s/deployment.yaml
-                        git add k8s/deployment.yaml
-                        git commit -m "Update image tag to ${IMAGE_TAG} [skip ci]" # Add [skip ci] to prevent new build
-                        git push https://\${GITHUB_TOKEN}@github.com/t39229/k8s-demo-app.git main
-                    """
+                script {
+                    def commitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
+                    if (!commitMessage.contains('[skip ci]')) {
+                        withCredentials([
+                            string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN'),
+                            usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')
+                        ]) {
+                            sh """
+                                git config --global user.email "t39163463@gmail.com"
+                                git config --global user.name "t39229"
+                                sed -i 's|image: .*|image: '\${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}'|' k8s/deployment.yaml
+                                git add k8s/deployment.yaml
+                                git commit -m "Update image tag to ${IMAGE_TAG} [skip ci]"
+                                git push https://\${GITHUB_TOKEN}@github.com/t39229/k8s-demo-app.git main
+                            """
+                        }
+                    }
                 }
             }
         }
