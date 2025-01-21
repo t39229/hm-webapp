@@ -71,7 +71,7 @@ pipeline {
                         git config --global user.name "t39229"
                         sed -i 's|image: .*|image: '\${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}'|' k8s/deployment.yaml
                         git add k8s/deployment.yaml
-                        git commit -m "Update image tag to ${IMAGE_TAG}"
+                        git commit -m "Update image tag to ${IMAGE_TAG} [skip ci]" # Add [skip ci] to prevent new build
                         git push https://\${GITHUB_TOKEN}@github.com/t39229/k8s-demo-app.git main
                     """
                 }
