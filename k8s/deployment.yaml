@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: t39229/nginx-app:84
+        image: t39229/nginx-app:85
         ports:
         - containerPort: 80
